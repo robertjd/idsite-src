@@ -37,7 +37,9 @@
       });
 
   })
-  .run(function($window){
-    console.log('cb_uri',new $window.Stormpath.Client().jwtPayload.cb_uri);
+  .run(function(Stormpath){
+    Stormpath.init.then(function(){
+      console.log('cb_uri',Stormpath.client.jwtPayload.cb_uri);
+    });
   });
 })(window);
