@@ -40,6 +40,9 @@
   .run(function(Stormpath){
     Stormpath.init.then(function(){
       console.log('cb_uri',Stormpath.client.jwtPayload.cb_uri);
+    }).catch(function(err){
+      console.log('init error',err);
+      console.log('cb_uri',Stormpath.client.jwtPayload.cb_uri);
     });
   });
 })(window);

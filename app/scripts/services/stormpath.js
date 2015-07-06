@@ -43,6 +43,7 @@ angular.module('stormpathIdpApp')
         $rootScope.$apply(function(){
           if(err){
             showError(err);
+            init.reject(err);
           }else{
             var m = idSiteModel;
             self.idSiteModel = m;
