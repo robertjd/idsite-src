@@ -35,5 +35,9 @@
       .otherwise({
         redirectTo: '/'
       });
+
+  })
+  .run(function($window){
+    console.log('cb_uri',new $window.Stormpath.Client().jwtPayload.cb_uri);
   });
 })(window);
