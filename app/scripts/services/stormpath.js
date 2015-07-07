@@ -52,6 +52,10 @@ angular.module('stormpathIdpApp')
           }
         });
       });
+
+      if(client.jwtPayload.state.match(/sptoken/)){
+        client.sptoken = client.jwtPayload.state.split(/sptoken=/)[1];
+      }
     }
 
     this.login = function login(username,password,cb){
