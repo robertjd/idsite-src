@@ -2,7 +2,7 @@
 
 
 angular.module('stormpathIdpApp')
-  .service('Stormpath', function Stormpath($window,$routeParams,$location,$rootScope,$q) {
+  .service('Stormpath', function Stormpath($window,$routeParams,$location,$rootScope,$q,$timeout) {
     var self = this;
     var init = $q.defer();
     var params = $location.search();
@@ -60,13 +60,15 @@ angular.module('stormpathIdpApp')
         login: username,
         password: password
       },function(err,response){
-        $rootScope.$apply(function(){
-          if(err){
-            cb(err);
-          }else{
-            redirect(response.redirectUrl);
-          }
-        });
+        $timeout(function(){
+          $rootScope.$apply(function(){
+            if(err){
+              cb(err);
+            }else{
+              redirect(response.redirectUrl);
+            }
+          });
+        },1000);
       });
     };
 
