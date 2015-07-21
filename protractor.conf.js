@@ -30,6 +30,7 @@ exports.config = {
   //   },
   // ],
   onPrepare: function() {
+    util.initializeTestResources();
     return browser.driver.wait(function() {
       return util.ready();
     }, 20000);

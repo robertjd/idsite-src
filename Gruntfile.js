@@ -9,6 +9,8 @@
 //
 var untildify = require('untildify');
 
+var util = require('./test/protractor/util');
+
 module.exports = function (grunt) {
 
   // Load grunt tasks automatically
@@ -84,8 +86,32 @@ module.exports = function (grunt) {
           base: [
             '.tmp',
             '<%= yeoman.app %>'
-          ]
-        }
+          ],
+
+          middleware: function(connect, options, middlewares) {
+
+            middlewares.unshift(function(req, res, next) {
+
+              if(req.url.match(/^\/jwt\?path=/)){
+
+                var options = {
+                  path: decodeURIComponent(req.url.split('path=')[1]) || '',
+                  callbackUri: grunt.config.process('http://<%=hostname %>:<%=port %>')
+                };
+
+                util.getJwtUrl(options,function(url) {
+
+                  res.end(url);
+                });
+              }else{
+                next();
+              }
+            });
+
+            return middlewares;
+          }
+        },
+
       },
       test: {
         options: {
@@ -454,6 +480,12 @@ module.exports = function (grunt) {
       return grunt.task.run(['build', 'connect:dist:keepalive']);
     }
 
+    // var done = this.async();
+
+    util.initializeDevApplication(function() {
+
+    });
+
     grunt.task.run([
       'clean:server',
       'bowerInstall',
@@ -463,6 +495,8 @@ module.exports = function (grunt) {
       // 'karma:liveunit', // liveunit tests disabled until I can fix the test cases
       'watch'
     ]);
+
+
   });
 
   grunt.registerTask('server', function (target) {

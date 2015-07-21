@@ -10,12 +10,19 @@ var async = require('async');
 
 require('colors');
 
-var client = new stormpath.Client({
-  apiKey: new stormpath.ApiKey(
-    process.env.STORMPATH_CLIENT_APIKEY_ID,
-    process.env.STORMPATH_CLIENT_APIKEY_SECRET
-  )
-});
+var client;
+
+try{
+  client = new stormpath.Client({
+    apiKey: new stormpath.ApiKey(
+      process.env.STORMPATH_CLIENT_APIKEY_ID,
+      process.env.STORMPATH_CLIENT_APIKEY_SECRET
+    )
+  });
+}catch(e){
+  console.log('Could not initialize a client for testing');
+  throw(e);
+}
 
 var ready = false;
 
@@ -134,10 +141,11 @@ function prepeareIdSiteModel(client,currentHost,callbckUri,cb){
   });
 }
 
-function getJwtUrl(path,cb){
+function getJwtUrl(options,cb){
+
   var url = resources.application.createIdSiteUrl({
-    callbackUri: browser.params.callbackUri,
-    path: path
+    callbackUri: options.callbackUri,
+    path: options.path
   });
 
   request(url,{
@@ -149,8 +157,7 @@ function getJwtUrl(path,cb){
       throw new Error(body&&body.message || JSON.stringify(body||'Unknown error'));
     }else{
       var fragment = res.headers.location.split('/#')[1];
-      var url = browser.params.appHost + '#' + fragment;
-      cb(url);
+      cb('#'+fragment);
     }
   });
 
@@ -197,34 +204,52 @@ function mapDirectory(application,directory,isDefaultAccountStore,cb) {
   });
 }
 
-async.parallel({
-  googleDirectory: createGoogleDirectory.bind(null,client),
-  facebookDirectory: createFacebookDirectory.bind(null,client),
-  application: createApplication.bind(null,client),
-  directory: createDirectory.bind(null,client,{name:'protractor-test-id-site-'+uuid()})
-},function(err,results) {
-  if(err){
-    throw err;
-  }else{
-    resources.googleDirectory = results.googleDirectory;
-    resources.facebookDirectory = results.facebookDirectory;
-    resources.application = results.application;
-    resources.directory = results.directory;
+function initializeTestResources() {
 
-    async.parallel({
-      idSiteModel: prepeareIdSiteModel.bind(null,client,browser.params.appHost,browser.params.callbackUri),
-      account: createAccount.bind(null,resources.directory)
-    },function(err,results) {
-      if(err){
-        throw err;
-      }else{
-        resources.loginAccount = results.account;
-        ready = true;
-      }
-    });
+  async.parallel({
+    googleDirectory: createGoogleDirectory.bind(null,client),
+    facebookDirectory: createFacebookDirectory.bind(null,client),
+    application: createApplication.bind(null,client),
+    directory: createDirectory.bind(null,client,{name:'protractor-test-id-site-'+uuid()})
+  },function(err,results) {
+    if(err){
+      throw err;
+    }else{
+      resources.googleDirectory = results.googleDirectory;
+      resources.facebookDirectory = results.facebookDirectory;
+      resources.application = results.application;
+      resources.directory = results.directory;
 
+      async.parallel({
+        idSiteModel: prepeareIdSiteModel.bind(null,client,browser.params.appHost,browser.params.callbackUri),
+        account: createAccount.bind(null,resources.directory)
+      },function(err,results) {
+        if(err){
+          throw err;
+        }else{
+          resources.loginAccount = results.account;
+          ready = true;
+        }
+      });
+
+    }
+  });
+}
+
+function initializeDevApplication(cb) {
+  var appHref = process.env.STORMPATH_APPLICATION_HREF;
+  if(!appHref){
+    throw new Error('STORMPATH_APPLICATION_HREF is not defined, you must specify an application to use for development');
   }
-});
+  client.getApplication(appHref,function(err,application) {
+    if(err){
+      throw err;
+    }else{
+      resources.application = application
+      cb(null,application);
+    }
+  })
+}
 
 module.exports = {
   createApplication: createApplication,
@@ -242,5 +267,7 @@ module.exports = {
   getLoginAccount: function(){
     return resources.loginAccount;
   },
-  mapDirectory: mapDirectory
+  mapDirectory: mapDirectory,
+  initializeTestResources: initializeTestResources,
+  initializeDevApplication: initializeDevApplication
 };

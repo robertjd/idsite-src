@@ -11,7 +11,11 @@ var IdSiteApp = function(){
     return element(by.css('.logo')).getAttribute('src');
   };
   this.arriveWithJwt = function arriveWithJwt(path,done){
-    util.getJwtUrl(path,function(url){
+    util.getJwtUrl({
+      path: path,
+      callbackUrl: browser.params.callbackUri
+    },function(fragment){
+      var url = browser.params.appHost + '#' + fragment;
       browser.get(url);
       done();
     });

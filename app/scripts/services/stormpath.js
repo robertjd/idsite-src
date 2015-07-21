@@ -43,6 +43,10 @@ angular.module('stormpathIdpApp')
         $rootScope.$apply(function(){
           if(err){
             showError(err);
+            console.log('message',err.message);
+            if(err.message.match(/jwt not found/)){
+              err.status='jwt_not_found';
+            }
             init.reject(err);
           }else{
             var m = idSiteModel;

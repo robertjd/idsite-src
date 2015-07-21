@@ -8,15 +8,44 @@ This is the development environment for the Stormpath hosted ID Site.  You can u
 
 It is assumed that you have Node.JS installed and that you have Bower and Grunt installed as global packages.
 
-After cloning this repository you should run `npm install` and `bower install` within the repository
+After cloning this repository you should run `npm install` and `bower install` within the repository.
 
-Then you can use the following grunt tasks:
+Then you must configure the following:
 
-* `grunt serve` will:
- * start the development server
- * load the application in your web browser
- * open a chrome instance for Karma tests to run in
- * watch files for edits and reload the application and re-run the tests
+* Export the following variables to your environment, these are required
+so that we can use a real Stormpath Application to generate JWT access tokens
+that allow the ID Site application to talk to the Stormpath API;
+
+```
+STORMPATH_CLIENT_APIKEY_ID=YOUR_KEY_ID
+STORMPATH_CLIENT_APIKEY_SECRET=YOUR_KEY_SECRET
+STORMPATH_APPLICATION_HREF=YOUR_APPLICATION_HREF
+```
+
+* Add the following URL to the "Authorized Javascript Origins" and "Authorized
+Redirect URLs" in your ID Site configuration:
+
+```
+http://localhost:9000
+```
+
+Once you have done the above tasks, you can start the development server
+with this Grunt command:
+
+```
+grunt serve
+```
+The following will happen:
+ * The development server is started
+ * The application is loaded in your browser
+ * A watcher is started, it will watch files for edits and reload the application in the browser.
+
+### Building your application
+
+After you make your modifications, you want to build the application to produce
+the minified output.  This output is what you will commit to a separate repository,
+and configuring your ID Site configuration to point at this repository.
+
 * `grunt build` will build the the application and place it in the `dist/` folder.  All assets will be minified.
 * `grunt build:debug` will also build the application to `dist/`, but without minifying the javascript assets
 
